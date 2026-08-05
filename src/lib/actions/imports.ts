@@ -218,6 +218,13 @@ export async function processImportedFile(id: string): Promise<void> {
         extractionMethod = "texto_pdf";
         confidence = 0.9;
       } else {
+        result = { ok: false, error: "Texto insuficiente extraído do PDF." };
+        extractionMethod = "texto_pdf";
+      }
+
+      // Extratos tabulares caem no parser de texto acima; comprovantes e outros
+      // layouts sem linhas "data descrição valor" precisam da leitura por IA.
+      if (!result.ok) {
         const base64 = buffer.toString("base64");
         result = await extractFromVisualDocument(base64, "application/pdf");
         extractionMethod = "ocr_ia";
