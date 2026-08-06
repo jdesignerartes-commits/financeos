@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,17 @@ export function TransactionDialog({
   costCenters: Pick<CostCenter, "id" | "name">[];
 }) {
   const isEdit = Boolean(transaction);
+  const hasDetails = Boolean(
+    transaction &&
+      (transaction.account_id ||
+        transaction.credit_card_id ||
+        transaction.category_id ||
+        transaction.merchant_id ||
+        transaction.cost_center_id ||
+        transaction.payment_method ||
+        transaction.notes),
+  );
+  const [showDetails, setShowDetails] = useState(hasDetails);
   const [type, setType] = useState(transaction?.type ?? "despesa");
   const [accountId, setAccountId] = useState(transaction?.account_id ?? NONE);
   const [creditCardId, setCreditCardId] = useState(transaction?.credit_card_id ?? NONE);
@@ -169,6 +180,16 @@ export function TransactionDialog({
         />
       </div>
 
+      <button
+        type="button"
+        onClick={() => setShowDetails((prev) => !prev)}
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        {showDetails ? "Menos detalhes" : "Mais detalhes (conta, cartão, categoria...)"}
+      </button>
+
+      <div className={`space-y-4 ${showDetails ? "" : "hidden"}`}>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Conta</Label>
@@ -333,6 +354,7 @@ export function TransactionDialog({
       <div className="space-y-2">
         <Label htmlFor="notes">Observações</Label>
         <Input id="notes" name="notes" defaultValue={transaction?.notes ?? ""} />
+      </div>
       </div>
     </FormDialog>
   );
