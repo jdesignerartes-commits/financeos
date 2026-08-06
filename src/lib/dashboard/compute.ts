@@ -69,6 +69,14 @@ export function computeCategoryBreakdown(
   return groupByAndSum(despesas, (t) => t.category_id, categoryNameById, "Sem categoria");
 }
 
+export function computeReceitaCategoryBreakdown(
+  transactions: DashboardTransaction[],
+  categoryNameById: Map<string, string>,
+): BreakdownEntry[] {
+  const receitas = transactions.filter((t) => t.type === "receita");
+  return groupByAndSum(receitas, (t) => t.category_id, categoryNameById, "Sem categoria");
+}
+
 export function computeMerchantBreakdown(
   transactions: DashboardTransaction[],
   merchantNameById: Map<string, string>,

@@ -9,6 +9,7 @@ import {
   computeTotals,
   computeMaiorGasto,
   computeCategoryBreakdown,
+  computeReceitaCategoryBreakdown,
   computeMerchantBreakdown,
   computeCardUsage,
   computeAccountActivity,
@@ -122,11 +123,13 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const previousTotals = computeTotals(previousTx);
   const maiorGasto = computeMaiorGasto(currentTx);
   const categoryBreakdown = computeCategoryBreakdown(currentTx, categoryNameById);
+  const receitaCategoryBreakdown = computeReceitaCategoryBreakdown(currentTx, categoryNameById);
   const merchantBreakdown = computeMerchantBreakdown(currentTx, merchantNameById);
   const cardUsage = computeCardUsage(currentTx, creditCardNameById);
   const accountActivity = computeAccountActivity(currentTx, accountNameById);
   const dailyEvolution = computeDailyEvolution(currentTx, year, monthNumber);
   const categoryChartData = foldIntoOther(categoryBreakdown, 8);
+  const receitaCategoryChartData = foldIntoOther(receitaCategoryBreakdown, 8);
 
   const hasAnyData = currentTx.length > 0;
 
@@ -176,6 +179,19 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
           </CardHeader>
           <CardContent>
             <CategoryBarChart data={categoryChartData} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Receitas por categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {receitaCategoryChartData.length === 0 ? (
+              <p className="p-6 text-sm text-muted-foreground">Sem receitas no período.</p>
+            ) : (
+              <CategoryBarChart data={receitaCategoryChartData} />
+            )}
           </CardContent>
         </Card>
 

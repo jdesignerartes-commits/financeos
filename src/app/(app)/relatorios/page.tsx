@@ -90,7 +90,9 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
 
   const summary = computeSummary(rows);
   const despesas = rows.filter((t) => t.type === "despesa");
+  const receitas = rows.filter((t) => t.type === "receita");
 
+  const byReceitaCategory = foldIntoOther(computeBreakdownByCategory(receitas, categoryNameById), 8);
   const byCategory = foldIntoOther(computeBreakdownByCategory(despesas, categoryNameById), 8);
   const byMerchant = foldIntoOther(computeBreakdownByMerchant(despesas, merchantNameById), 8);
   const byCostCenter = foldIntoOther(computeBreakdownByCostCenter(despesas, costCenterNameById), 8);
@@ -165,6 +167,18 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Receitas por categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {byReceitaCategory.length === 0 ? (
+              <p className="p-6 text-sm text-muted-foreground">Sem receitas no período.</p>
+            ) : (
+              <CategoryBarChart data={byReceitaCategory} />
+            )}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Despesas por categoria</CardTitle>
