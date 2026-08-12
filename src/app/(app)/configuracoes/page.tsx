@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { setCostCenterStatus, deleteCostCenter } from "@/lib/actions/cost-centers";
 import { setAutomationRuleStatus, deleteAutomationRule } from "@/lib/actions/automation-rules";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getIcon } from "@/lib/icon-options";
 import { RULE_FIELD_LABELS, RULE_OPERATOR_LABELS, RULE_ACTION_TYPE_LABELS } from "@/lib/labels";
+import { MORE_PAGES } from "@/lib/nav";
 
 export default async function ConfiguracoesPage() {
   const supabase = await createClient();
@@ -39,6 +41,32 @@ export default async function ConfiguracoesPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Configurações</h1>
         <p className="text-sm text-muted-foreground">Preferências e configurações gerais da conta.</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Mais páginas</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Menu principal ficou só com o essencial — o resto continua aqui.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            {MORE_PAGES.map((page) => {
+              const Icon = page.icon;
+              return (
+                <Link
+                  key={page.href}
+                  href={page.href}
+                  className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/50"
+                >
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  {page.label}
+                </Link>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
