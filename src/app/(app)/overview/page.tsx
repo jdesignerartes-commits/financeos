@@ -1,10 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { checkAndCreateNotifications } from "@/lib/actions/notifications";
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { CategoryBarChart } from "@/components/dashboard/category-bar-chart";
 import { EvolutionChart } from "@/components/dashboard/evolution-chart";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BigNumber,
+  BreakdownList,
+  HighlightGrid,
+  Label,
+  Metric,
+  MetricRow,
+  MINIMAL,
+  MinimalPage,
+  Section,
+  formatBRL,
+  percentDelta,
+} from "@/components/minimal/primitives";
 import {
   computeTotals,
   computeMaiorGasto,
@@ -22,15 +32,6 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function percentDelta(current: number, previous: number) {
-  if (previous === 0) return current === 0 ? 0 : 100;
-  return ((current - previous) / Math.abs(previous)) * 100;
 }
 
 export default async function OverviewPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -53,7 +54,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
 
   const supabase = await createClient();
 
-  const baseSelect = "id, date, amount, type, friendly_description, category_id, merchant_id, account_id, credit_card_id";
+  const baseSelect =
+    "id, date, amount, type, friendly_description, category_id, merchant_id, account_id, credit_card_id";
 
   let currentQuery = supabase.from("transactions").select(baseSelect).gte("date", startDate).lte("date", endDate);
   let previousQuery = supabase
@@ -131,99 +133,98 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const cardUsage = computeCardUsage(currentTx, creditCardNameById);
   const accountActivity = computeAccountActivity(currentTx, accountNameById);
   const dailyEvolution = computeDailyEvolution(currentTx, year, monthNumber);
-  const categoryChartData = foldIntoOther(categoryBreakdown, 8);
-  const receitaCategoryChartData = foldIntoOther(receitaCategoryBreakdown, 8);
+  const categoryChartData = foldIntoOther(categoryBreakdown, 6);
+  const receitaCategoryChartData = foldIntoOther(receitaCategoryBreakdown, 5);
 
   const hasAnyData = currentTx.length > 0;
+  const saldoDelta = totals.saldo - previousTotals.saldo;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Visão geral</h1>
-          <p className="text-sm text-muted-foreground">
+    <MinimalPage>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <Label>Visão geral</Label>
+          <p className="max-w-[52ch] text-sm" style={{ color: MINIMAL.body }}>
             {hasAnyData
               ? "Indicadores, gráficos e comparativos do período selecionado."
               : "Nenhuma movimentação neste período. Envie seus documentos em Importações ou ajuste o filtro."}
           </p>
         </div>
+        <DashboardFilters accounts={accounts ?? []} creditCards={creditCards ?? []} categories={categories ?? []} />
       </div>
 
-      <DashboardFilters accounts={accounts ?? []} creditCards={creditCards ?? []} categories={categories ?? []} />
+      <section className="flex flex-wrap items-end gap-12">
+        <div className="flex min-w-[320px] flex-1 flex-col gap-3">
+          <Label>Saldo do período</Label>
+          <BigNumber>{formatBRL(totals.saldo, true)}</BigNumber>
+          <div className="flex items-center gap-[10px] text-[13px]" style={{ color: MINIMAL.body }}>
+            <span style={{ color: saldoDelta >= 0 ? MINIMAL.green : MINIMAL.negative, fontWeight: 500 }}>
+              {saldoDelta >= 0 ? "+ " : "− "}
+              {formatBRL(Math.abs(saldoDelta), true)}
+            </span>
+            <span className="h-3 w-px" style={{ background: "#d9d9d1" }} />
+            <span>em relação ao mês anterior</span>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard
-          label="Receitas"
-          value={formatCurrency(totals.totalReceitas)}
-          delta={{ percent: percentDelta(totals.totalReceitas, previousTotals.totalReceitas), label: "vs mês anterior" }}
-          deltaGoodDirection="up"
-        />
-        <StatCard
-          label="Despesas"
-          value={formatCurrency(totals.totalDespesas)}
-          delta={{ percent: percentDelta(totals.totalDespesas, previousTotals.totalDespesas), label: "vs mês anterior" }}
-          deltaGoodDirection="down"
-        />
-        <StatCard
-          label="Saldo"
-          value={formatCurrency(totals.saldo)}
-          delta={{ percent: percentDelta(totals.saldo, previousTotals.saldo), label: "vs mês anterior" }}
-          deltaGoodDirection="up"
-        />
-        <StatCard label="Economia do período" value={`${totals.economiaPercent.toFixed(1)}%`} />
-        <StatCard label="Transações" value={String(totals.qtdTransacoes)} />
-        <StatCard label="Ticket médio" value={formatCurrency(totals.ticketMedio)} />
+        <div className="min-w-[320px] flex-1">
+          <MetricRow>
+            <Metric
+              label="Receitas"
+              value={formatBRL(totals.totalReceitas)}
+              delta={percentDelta(totals.totalReceitas, previousTotals.totalReceitas)}
+              goodDirection="up"
+            />
+            <Metric
+              label="Despesas"
+              value={formatBRL(totals.totalDespesas)}
+              delta={percentDelta(totals.totalDespesas, previousTotals.totalDespesas)}
+              goodDirection="down"
+            />
+            <Metric label="Economia" value={`${totals.economiaPercent.toFixed(1)}%`} highlight />
+          </MetricRow>
+        </div>
+      </section>
+
+      <Section
+        title="Evolução diária"
+        aside={
+          <div className="flex gap-[18px] font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: MINIMAL.muted }}>
+            <span>{totals.qtdTransacoes} transações</span>
+            <span>ticket médio {formatBRL(totals.ticketMedio)}</span>
+          </div>
+        }
+      >
+        <EvolutionChart data={dailyEvolution} />
+      </Section>
+
+      <div className="grid gap-12 lg:grid-cols-2">
+        <Section title="Gastos por categoria">
+          <BreakdownList data={categoryChartData} empty="Sem despesas no período." />
+        </Section>
+        <Section title="Receitas por categoria">
+          <BreakdownList data={receitaCategoryChartData} empty="Sem receitas no período." />
+        </Section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Gastos por categoria</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CategoryBarChart data={categoryChartData} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Receitas por categoria</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {receitaCategoryChartData.length === 0 ? (
-              <p className="p-6 text-sm text-muted-foreground">Sem receitas no período.</p>
-            ) : (
-              <CategoryBarChart data={receitaCategoryChartData} />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Evolução diária — receitas x despesas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EvolutionChart data={dailyEvolution} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        <StatCard
-          label="Maior gasto"
-          value={maiorGasto ? formatCurrency(maiorGasto.amount) : "—"}
+      <Section title="Destaques do período">
+        <HighlightGrid
+          items={[
+            { label: "Maior gasto", value: maiorGasto ? formatBRL(maiorGasto.amount) : "—" },
+            { label: "Maior categoria", value: categoryBreakdown[0]?.name ?? "—" },
+            { label: "Maior estabelecimento", value: merchantBreakdown[0]?.name ?? "—" },
+            { label: "Cartão mais utilizado", value: cardUsage[0]?.name ?? "—" },
+            { label: "Conta mais movimentada", value: accountActivity[0]?.name ?? "—" },
+          ]}
         />
-        <StatCard label="Maior categoria" value={categoryBreakdown[0]?.name ?? "—"} />
-        <StatCard label="Maior estabelecimento" value={merchantBreakdown[0]?.name ?? "—"} />
-        <StatCard label="Cartão mais utilizado" value={cardUsage[0]?.name ?? "—"} />
-        <StatCard label="Conta mais movimentada" value={accountActivity[0]?.name ?? "—"} />
-      </div>
+      </Section>
 
-      <Card className="bg-muted/30">
-        <CardContent className="pt-6 text-sm text-muted-foreground">
-          Última importação: {lastImport ? `${lastImport.file_name} — ${new Date(lastImport.created_at).toLocaleString("pt-BR")}` : "nenhuma ainda"}
-        </CardContent>
-      </Card>
-    </div>
+      <p className="font-mono text-[11px]" style={{ color: MINIMAL.muted }}>
+        Última importação:{" "}
+        {lastImport
+          ? `${lastImport.file_name} — ${new Date(lastImport.created_at).toLocaleString("pt-BR")}`
+          : "nenhuma ainda"}
+      </p>
+    </MinimalPage>
   );
 }
