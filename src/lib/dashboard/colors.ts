@@ -1,21 +1,22 @@
-// Paleta validada (ver skill dataviz): azul/vermelho divergente para receita/despesa,
-// azul sequencial para magnitude (gastos por categoria), cinza para "Outros".
+// Paleta validada (ver skill dataviz): divergente para receita/despesa,
+// sequencial para magnitude (gastos por categoria), cinza para "Outros".
+// Ajustada ao tema minimalista: verde profundo para receita, terracota para despesa.
 export const CHART_COLORS = {
   light: {
-    income: "#2a78d6",
-    expense: "#e34948",
-    sequential: "#2a78d6",
-    muted: "#898781",
-    grid: "#e1e0d9",
-    axis: "#c3c2b7",
+    income: "#2c4b38",
+    expense: "#9b6a52",
+    sequential: "#2c4b38",
+    muted: "#c9cdc2",
+    grid: "#e5e5dd",
+    axis: "#8d918a",
   },
   dark: {
-    income: "#3987e5",
-    expense: "#e66767",
-    sequential: "#3987e5",
-    muted: "#898781",
+    income: "#6f9a7f",
+    expense: "#c08e74",
+    sequential: "#6f9a7f",
+    muted: "#5c605a",
     grid: "#2c2c2a",
-    axis: "#383835",
+    axis: "#8d918a",
   },
 };
 
