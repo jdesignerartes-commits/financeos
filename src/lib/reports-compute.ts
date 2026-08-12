@@ -11,7 +11,7 @@ export type ReportTransaction = {
   cost_center_id: string | null;
 };
 
-export type BreakdownEntry = { id: string; name: string; total: number };
+export type BreakdownEntry = { id: string; name: string; total: number; color?: string };
 
 function groupByAndSum(
   transactions: ReportTransaction[],
@@ -29,8 +29,14 @@ function groupByAndSum(
     .sort((a, b) => b.total - a.total);
 }
 
-export function computeBreakdownByCategory(transactions: ReportTransaction[], nameById: Map<string, string>) {
-  return groupByAndSum(transactions, (t) => t.category_id, nameById, "Sem categoria");
+export function computeBreakdownByCategory(
+  transactions: ReportTransaction[],
+  nameById: Map<string, string>,
+  colorById?: Map<string, string>,
+) {
+  const entries = groupByAndSum(transactions, (t) => t.category_id, nameById, "Sem categoria");
+  if (!colorById) return entries;
+  return entries.map((entry) => ({ ...entry, color: colorById.get(entry.id) }));
 }
 
 export function computeBreakdownByMerchant(transactions: ReportTransaction[], nameById: Map<string, string>) {

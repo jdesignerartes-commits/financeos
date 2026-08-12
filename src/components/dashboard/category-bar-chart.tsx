@@ -44,7 +44,10 @@ export function CategoryBarChart({ data }: { data: BreakdownEntry[] }) {
         />
         <Bar dataKey="total" radius={[0, 4, 4, 0]} maxBarSize={22}>
           {data.map((entry) => (
-            <Cell key={entry.id} fill={entry.id === "__other__" ? colors.muted : colors.sequential} />
+            <Cell
+              key={entry.id}
+              fill={entry.id === "__other__" ? colors.muted : (entry.color ?? colors.sequential)}
+            />
           ))}
           <LabelList
             dataKey="total"

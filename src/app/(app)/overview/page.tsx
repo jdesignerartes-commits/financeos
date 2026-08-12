@@ -88,7 +88,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
     previousQuery,
     supabase.from("accounts").select("id, name").order("name"),
     supabase.from("credit_cards").select("id, name").order("name"),
-    supabase.from("categories").select("id, name").order("sort_order"),
+    supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase.from("merchants").select("id, display_name"),
     supabase
       .from("imported_files")
@@ -117,13 +117,16 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const accountNameById = new Map((accounts ?? []).map((a) => [a.id, a.name]));
   const creditCardNameById = new Map((creditCards ?? []).map((c) => [c.id, c.name]));
   const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
+  const categoryColorById = new Map(
+    (categories ?? []).filter((c) => c.color).map((c) => [c.id, c.color as string]),
+  );
   const merchantNameById = new Map((merchants ?? []).map((m) => [m.id, m.display_name]));
 
   const totals = computeTotals(currentTx);
   const previousTotals = computeTotals(previousTx);
   const maiorGasto = computeMaiorGasto(currentTx);
-  const categoryBreakdown = computeCategoryBreakdown(currentTx, categoryNameById);
-  const receitaCategoryBreakdown = computeReceitaCategoryBreakdown(currentTx, categoryNameById);
+  const categoryBreakdown = computeCategoryBreakdown(currentTx, categoryNameById, categoryColorById);
+  const receitaCategoryBreakdown = computeReceitaCategoryBreakdown(currentTx, categoryNameById, categoryColorById);
   const merchantBreakdown = computeMerchantBreakdown(currentTx, merchantNameById);
   const cardUsage = computeCardUsage(currentTx, creditCardNameById);
   const accountActivity = computeAccountActivity(currentTx, accountNameById);

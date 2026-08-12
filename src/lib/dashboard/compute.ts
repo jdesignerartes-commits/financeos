@@ -43,7 +43,7 @@ export function computeMaiorGasto(transactions: DashboardTransaction[]) {
   return despesas.reduce((max, t) => (t.amount > max.amount ? t : max), despesas[0]);
 }
 
-export type BreakdownEntry = { id: string; name: string; total: number };
+export type BreakdownEntry = { id: string; name: string; total: number; color?: string };
 
 function groupByAndSum(
   transactions: DashboardTransaction[],
@@ -61,20 +61,27 @@ function groupByAndSum(
     .sort((a, b) => b.total - a.total);
 }
 
+function withColors(entries: BreakdownEntry[], colorById?: Map<string, string>): BreakdownEntry[] {
+  if (!colorById) return entries;
+  return entries.map((entry) => ({ ...entry, color: colorById.get(entry.id) }));
+}
+
 export function computeCategoryBreakdown(
   transactions: DashboardTransaction[],
   categoryNameById: Map<string, string>,
+  categoryColorById?: Map<string, string>,
 ): BreakdownEntry[] {
   const despesas = transactions.filter((t) => t.type === "despesa");
-  return groupByAndSum(despesas, (t) => t.category_id, categoryNameById, "Sem categoria");
+  return withColors(groupByAndSum(despesas, (t) => t.category_id, categoryNameById, "Sem categoria"), categoryColorById);
 }
 
 export function computeReceitaCategoryBreakdown(
   transactions: DashboardTransaction[],
   categoryNameById: Map<string, string>,
+  categoryColorById?: Map<string, string>,
 ): BreakdownEntry[] {
   const receitas = transactions.filter((t) => t.type === "receita");
-  return groupByAndSum(receitas, (t) => t.category_id, categoryNameById, "Sem categoria");
+  return withColors(groupByAndSum(receitas, (t) => t.category_id, categoryNameById, "Sem categoria"), categoryColorById);
 }
 
 export function computeMerchantBreakdown(

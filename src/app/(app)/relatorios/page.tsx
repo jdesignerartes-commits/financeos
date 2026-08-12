@@ -75,7 +75,7 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
     query,
     supabase.from("accounts").select("id, name").order("name"),
     supabase.from("credit_cards").select("id, name").order("name"),
-    supabase.from("categories").select("id, name").order("sort_order"),
+    supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase.from("cost_centers").select("id, name").order("name"),
     supabase.from("merchants").select("id, display_name").order("display_name"),
   ]);
@@ -83,6 +83,9 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
   const rows: ReportTransaction[] = transactions ?? [];
 
   const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
+  const categoryColorById = new Map(
+    (categories ?? []).filter((c) => c.color).map((c) => [c.id, c.color as string]),
+  );
   const merchantNameById = new Map((merchants ?? []).map((m) => [m.id, m.display_name]));
   const costCenterNameById = new Map((costCenters ?? []).map((c) => [c.id, c.name]));
   const accountNameById = new Map((accounts ?? []).map((a) => [a.id, a.name]));
@@ -92,8 +95,8 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
   const despesas = rows.filter((t) => t.type === "despesa");
   const receitas = rows.filter((t) => t.type === "receita");
 
-  const byReceitaCategory = foldIntoOther(computeBreakdownByCategory(receitas, categoryNameById), 8);
-  const byCategory = foldIntoOther(computeBreakdownByCategory(despesas, categoryNameById), 8);
+  const byReceitaCategory = foldIntoOther(computeBreakdownByCategory(receitas, categoryNameById, categoryColorById), 8);
+  const byCategory = foldIntoOther(computeBreakdownByCategory(despesas, categoryNameById, categoryColorById), 8);
   const byMerchant = foldIntoOther(computeBreakdownByMerchant(despesas, merchantNameById), 8);
   const byCostCenter = foldIntoOther(computeBreakdownByCostCenter(despesas, costCenterNameById), 8);
   const byOrigin = foldIntoOther(
