@@ -33,12 +33,12 @@ export function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Título grande em serifada — usado no número principal de cada página. */
+/** Número grande — usado no número principal de cada página. Fonte sans-serif (Poppins), sem serifada. */
 export function BigNumber({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="text-[64px] leading-[0.95] tabular-nums md:text-[76px]"
-      style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontWeight: 300, letterSpacing: "-0.02em" }}
+      style={{ fontWeight: 300, letterSpacing: "-0.02em" }}
     >
       {children}
     </p>
