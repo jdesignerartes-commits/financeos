@@ -143,7 +143,10 @@ export function BreakdownList({ data, empty }: { data: BreakdownEntry[]; empty: 
           <div className="h-[3px]" style={{ background: MINIMAL.line }}>
             <div
               className="h-[3px]"
-              style={{ background: MINIMAL.green, width: `${max > 0 ? (entry.total / max) * 100 : 0}%` }}
+              style={{
+                background: entry.color ?? MINIMAL.green,
+                width: `${max > 0 ? (entry.total / max) * 100 : 0}%`,
+              }}
             />
           </div>
         </div>
