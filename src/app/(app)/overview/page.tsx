@@ -157,6 +157,19 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         <div className="flex min-w-[320px] flex-1 flex-col gap-3">
           <Label>Saldo do período</Label>
           <BigNumber>{formatBRL(totals.saldo, true)}</BigNumber>
+          <div
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] tabular-nums"
+            style={{ color: MINIMAL.body }}
+          >
+            <span>Entradas</span>
+            <span style={{ color: MINIMAL.green, fontWeight: 500 }}>{formatBRL(totals.totalReceitas, true)}</span>
+            <span>− Despesas</span>
+            <span style={{ color: MINIMAL.negative, fontWeight: 500 }}>{formatBRL(totals.totalDespesas, true)}</span>
+            <span>= Saldo</span>
+            <span style={{ color: totals.saldo >= 0 ? MINIMAL.green : MINIMAL.negative, fontWeight: 500 }}>
+              {formatBRL(totals.saldo, true)}
+            </span>
+          </div>
           <div className="flex items-center gap-[10px] text-[13px]" style={{ color: MINIMAL.body }}>
             <span style={{ color: saldoDelta >= 0 ? MINIMAL.green : MINIMAL.negative, fontWeight: 500 }}>
               {saldoDelta >= 0 ? "+ " : "− "}
