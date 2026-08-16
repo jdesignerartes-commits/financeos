@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isTransactionType, type ExtractedRow } from "@/lib/ingestion/types";
+import { learnMerchantCategory } from "@/lib/ingestion/merchant-learning";
 
 export type CandidateRef = { fileId: string; index: number };
 export type FormState = { error?: string } | undefined;
@@ -208,6 +209,10 @@ export async function updateCandidateAction(_prevState: FormState, formData: For
   if (merchantId && merchantId !== (previous?.merchant_id ?? null)) {
     await learnAlias(supabase, user.id, previous?.description ?? description, merchantId);
   }
+
+  if (merchantId && categoryId) {
+    await learnMerchantCategory(supabase, merchantId, categoryId, subcategoryId);
+  }
 }
 
 export async function bulkSetCategoryAction(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -221,16 +226,25 @@ export async function bulkSetCategoryAction(_prevState: FormState, formData: For
 
   const supabase = await createClient();
   const byFile = groupByFile(refs);
+  const merchantIds = new Set<string>();
 
   for (const [fileId, indices] of byFile) {
     const loaded = await loadRawExtraction(supabase, fileId);
     if (!loaded) continue;
 
     const indexSet = new Set(indices);
-    const rows = loaded.rows.map((row, i) =>
-      indexSet.has(i) ? { ...row, category_id: categoryId, subcategory_id: subcategoryId } : row,
-    );
+    const rows = loaded.rows.map((row, i) => {
+      if (!indexSet.has(i)) return row;
+      if (row.merchant_id) merchantIds.add(row.merchant_id);
+      return { ...row, category_id: categoryId, subcategory_id: subcategoryId };
+    });
     await supabase.from("raw_extractions").update({ raw_data: rows }).eq("id", loaded.rawExtractionId);
+  }
+
+  if (categoryId) {
+    await Promise.all(
+      [...merchantIds].map((merchantId) => learnMerchantCategory(supabase, merchantId, categoryId, subcategoryId)),
+    );
   }
 
   revalidatePath("/revisao");

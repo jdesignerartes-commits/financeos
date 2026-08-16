@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { learnMerchantCategory } from "@/lib/ingestion/merchant-learning";
 
 export type FormState = { error?: string } | undefined;
 
@@ -77,6 +78,10 @@ export async function saveTransaction(_prevState: FormState, formData: FormData)
 
   if (error) {
     return { error: "Não foi possível salvar a transação." };
+  }
+
+  if (values.merchant_id && values.category_id) {
+    await learnMerchantCategory(supabase, values.merchant_id, values.category_id, values.subcategory_id);
   }
 
   revalidatePath("/transacoes");
